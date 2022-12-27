@@ -98,18 +98,19 @@ public class winterBreakTest extends LinearOpMode {
                 setDrive(0.2, 0, 0);
 
             //telemetry for [all] motor powers
-            telemetry.addData("Drive Status", "FL: " + frontLeft.getPower());
-            telemetry.addData("Drive Status", "BL: " + backLeft.getPower());
-            telemetry.addData("Drive Status", "FR: " + frontRight.getPower());
-            telemetry.addData("Drive Status", "BR: " + backRight.getPower());
+            telemetry.addData("FL: ", frontLeft.getPower());
+            telemetry.addData("BL: ", backLeft.getPower());
+            telemetry.addData("FR: ", frontRight.getPower());
+            telemetry.addData("BR: ", backRight.getPower());
 
             //telemetry for colorSensor
-            telemetry.addData("Red", "Red: " + colorSensor.red());
-            telemetry.addData("Green","Green: " + colorSensor.green());
-            telemetry.addData("Blue", "Blue: " + colorSensor.blue());
+            telemetry.addData("Red: ", colorSensor.red());
+            telemetry.addData("Green", colorSensor.green());
+            telemetry.addData("Blue", colorSensor.blue());
 
-            //telemetry for distanceSensor
-            telemetry.addData("Distance Status", "Distance from back: " + backDistanceSensor.getDistance(DistanceUnit.CM));
+            //telemetry for distance sensors
+            telemetry.addData("Distance from front: ", frontDistanceSensor.getDistance(DistanceUnit.CM));
+            telemetry.addData("Distance from back: ", backDistanceSensor.getDistance(DistanceUnit.CM));
 
             telemetry.update();
         }
