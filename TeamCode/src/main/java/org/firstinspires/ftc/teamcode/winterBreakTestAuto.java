@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
@@ -12,9 +13,9 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import java.util.HashMap;
 
-@TeleOp(name="test mode", group="Linear Opmode")
+@Autonomous(name="test autonomous")
 //@Disabled
-public class winterBreakTest extends LinearOpMode {
+public class winterBreakTestAuto extends LinearOpMode {
 
     // Declare OpMode members.
     private ElapsedTime runtime = new ElapsedTime();
@@ -23,23 +24,12 @@ public class winterBreakTest extends LinearOpMode {
     private DistanceSensor frontDistanceSensor;
     private DistanceSensor backDistanceSensor;
     private ColorSensor colorSensor;
-    private DriveMode[] driveModesArray = {DriveMode.DRIVE, DriveMode.SAFE_DRIVE, DriveMode.B_DRIVE, DriveMode.SAFE_B_DRIVE};
-    private int driveModeCycle = 0;
-    private DriveMode currentMode = driveModesArray[driveModeCycle];
-    //adjust this number to be higher/lower (val between 0 and 1) for lower speed
-    private final double safeDrive = 0.2;
-    private boolean aPressed = false;
 
-    public enum DriveMode {
-        DRIVE,
-        SAFE_DRIVE,
-        B_DRIVE,
-        SAFE_B_DRIVE
-    }
+    //encoder information
+    private double ticksPerRevolution = 537.6;
+    //9.8 cm
+    private double wheelDiameter = 9.8;
 
-    public void driveSwitch() {
-        driveModeCycle = (driveModeCycle + 1) % 4;
-    }
 
     public void HardwareMap() {
         frontLeft  = hardwareMap.get(DcMotorEx.class, "frontLeft");
@@ -72,29 +62,12 @@ public class winterBreakTest extends LinearOpMode {
         setPower(frontLeftPower, backLeftPower, frontRightPower, backRightPower);
     }
 
-    public void setDriveMode() {
-        //drive via gamepad control
-        double drive = -gamepad1.left_stick_y;
-        double strafe = gamepad1.left_stick_x;
-        double rotate = gamepad1.right_stick_x;
+    public int distToTicks(int distanceInCM) {
+        return (int) ((distanceInCM * ticksPerRevolution) / (wheelDiameter * Math.PI));
+    }
 
-        switch(currentMode) {
-            case DRIVE:
-                setDrive(drive, strafe, rotate);
-                break;
-            case SAFE_DRIVE:
-                setDrive(drive * safeDrive, strafe * safeDrive, rotate * safeDrive);
-                break;
-            case B_DRIVE:
-                setDrive(-drive, -strafe, rotate);
-                break;
-            case SAFE_B_DRIVE:
-                setDrive(-drive * safeDrive, -strafe * safeDrive, rotate * safeDrive);
-                break;
-            default:
-                setDrive(drive, strafe, rotate);
-        }
-        //note: rotate is the same, regardless of forward/backward movement pos)
+    public int ticksToDist(int ticks) {
+        return (int) ((ticks * wheelDiameter * Math.PI) / ticksPerRevolution);
     }
 
     public void runEncoders(DcMotorEx frontLeft, DcMotorEx backLeft, DcMotorEx frontRight, DcMotorEx backRight) {
@@ -120,21 +93,12 @@ public class winterBreakTest extends LinearOpMode {
         waitForStart();
         runtime.reset();
 
-        while (opModeIsActive()) {
-            setDriveMode();
+        if (opModeIsActive()) {
 
-            //cycle through driveModes via a button
-            if(gamepad1.a && !aPressed)
-                driveSwitch();
-            aPressed = gamepad1.a;
-
-            currentMode = driveModesArray[driveModeCycle];
-
-            //keeps bot from slamming into walls (front/back only)
-            if (frontDistanceSensor.getDistance(DistanceUnit.CM) < 10)
-                setDrive(-0.2, 0, 0);
-            else if (backDistanceSensor.getDistance(DistanceUnit.CM) < 10)
-                setDrive(0.2, 0, 0);
+            frontLeft.setTargetPosition(distToTicks(10));
+            backLeft.setTargetPosition(distToTicks(10));
+            frontRight.setTargetPosition(distToTicks(10));
+            backRight.setTargetPosition(distToTicks(10));
 
             //telemetry for [all] motor powers
             telemetry.addData("FL: ", frontLeft.getPower());
@@ -150,10 +114,6 @@ public class winterBreakTest extends LinearOpMode {
             //telemetry for distance sensors
             telemetry.addData("Distance from front: ", frontDistanceSensor.getDistance(DistanceUnit.CM));
             telemetry.addData("Distance from back: ", backDistanceSensor.getDistance(DistanceUnit.CM));
-
-            //telemetry for driveMode
-            telemetry.addData("Drive Mode:", currentMode.toString());
-            telemetry.addData("Drive Mode Cycle: ", + driveModeCycle);
 
             telemetry.update();
         }
